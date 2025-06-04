@@ -1,121 +1,235 @@
+#include "../header/structure.h"
 #include <gtest/gtest.h>
-#include "structure.h"
-#include <set>
 #include <vector>
 #include <algorithm>
+#include <set>
+#include <string>
 
-using namespace testing;
+TEST(SkipListTest, DefaultConstructor) {
+    SkipList<int> list;
+    EXPECT_TRUE(list.empty());
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_EQ(list.begin(), list.end());
+}
 
-class SkipSetTest : public Test {
-protected:
-    skip_set<int> ss;
+TEST(SkipListTest, InsertAndSize) {
+    SkipList<int> list;
+    auto [it1, inserted1] = list.insert(5);
+    EXPECT_TRUE(inserted1);
+    EXPECT_EQ(*it1, 5);
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_FALSE(list.empty());
 
-    void SetUp() override {
-        ss = skip_set<int>(std::less<int>(), std::allocator<int>(), 12, 0.5);
+    auto [it2, inserted2] = list.insert(10);
+    EXPECT_TRUE(inserted2);
+    EXPECT_EQ(list.size(), 2);
+
+    auto [it3, inserted3] = list.insert(5);
+    EXPECT_FALSE(inserted3);
+    EXPECT_EQ(list.size(), 2);
+}
+
+TEST(SkipListTest, FindAndContains) {
+    SkipList<std::string> list;
+    list.insert("apple");
+    list.insert("banana");
+
+    auto it = list.find("apple");
+    EXPECT_NE(it, list.end());
+    EXPECT_EQ(*it, "apple");
+
+    it = list.find("orange");
+    EXPECT_EQ(it, list.end());
+
+    EXPECT_TRUE(list.contains("banana"));
+    EXPECT_FALSE(list.contains("grape"));
+}
+
+TEST(SkipListTest, Erase) {
+    SkipList<int> list;
+    list.insert(5);
+    list.insert(10);
+    list.insert(15);
+
+    EXPECT_EQ(list.erase(10), 1);
+    EXPECT_EQ(list.size(), 2);
+    EXPECT_FALSE(list.contains(10));
+
+    EXPECT_EQ(list.erase(20), 0);
+
+    auto it = list.find(5);
+    it = list.erase(it);
+    EXPECT_EQ(*it, 15);
+    EXPECT_EQ(list.size(), 1);
+}
+
+TEST(SkipListTest, ForwardIteration) {
+    SkipList<int> list;
+    std::vector<int> values = {5, 3, 7, 1, 4, 9, 2};
+    for (int v : values) {
+        list.insert(v);
     }
-};
 
-TEST_F(SkipSetTest, StartsEmpty) {
-    EXPECT_TRUE(ss.empty());
-    EXPECT_EQ(ss.size(), 0);
-}
-
-TEST_F(SkipSetTest, InsertIncreasesSize) {
-    auto [it, inserted] = ss.insert(42);
-    EXPECT_TRUE(inserted);
-    EXPECT_EQ(ss.size(), 1);
-    EXPECT_FALSE(ss.empty());
-}
-
-TEST_F(SkipSetTest, InsertDuplicatesFails) {
-    ss.insert(10);
-    auto [it, inserted] = ss.insert(10);
-    EXPECT_FALSE(inserted);
-    EXPECT_EQ(ss.size(), 1);
-}
-
-TEST_F(SkipSetTest, FindExistingElement) {
-    ss.insert(5);
-    auto it = ss.find(5);
-    EXPECT_NE(it, ss.end());
-    EXPECT_EQ(*it, 5);
-}
-
-TEST_F(SkipSetTest, FindMissingElement) {
-    ss.insert(1);
-    EXPECT_EQ(ss.find(2), ss.end());
-}
-
-TEST_F(SkipSetTest, EraseExistingElement) {
-    ss.insert(3);
-    EXPECT_EQ(ss.erase(3), 1);
-    EXPECT_EQ(ss.size(), 0);
-    EXPECT_EQ(ss.find(3), ss.end());
-}
-
-TEST_F(SkipSetTest, EraseMissingElement) {
-    ss.insert(4);
-    EXPECT_EQ(ss.erase(5), 0);
-    EXPECT_EQ(ss.size(), 1);
-}
-
-TEST_F(SkipSetTest, IteratorTraversal) {
-    std::vector<int> vals = {3, 1, 4, 2};
-    for (int v : vals) ss.insert(v);
-
-    std::sort(vals.begin(), vals.end());
-    std::vector<int> result;
-    for (auto it = ss.begin(); it != ss.end(); ++it) {
-        result.push_back(*it);
+    std::sort(values.begin(), values.end());
+    std::vector<int> list_values;
+    for (auto it = list.begin(); it != list.end(); ++it) {
+        list_values.push_back(*it);
     }
-    EXPECT_EQ(result, vals);
+    EXPECT_EQ(list_values, values);
 }
 
-TEST_F(SkipSetTest, ConstIterator) {
-    ss.insert(7);
-    const auto& css = ss;
-    auto it = css.find(7);
-    EXPECT_NE(it, css.end());
-    EXPECT_EQ(*it, 7);
+TEST(SkipListTest, ReverseIteration) {
+    SkipList<int> list;
+    list.insert(1);
+    list.insert(2);
+    list.insert(3);
+
+    auto it = list.end();
+    --it;
+    EXPECT_EQ(*it, 3);
+    --it;
+    EXPECT_EQ(*it, 2);
+    --it;
+    EXPECT_EQ(*it, 1);
+    EXPECT_EQ(it, list.begin());
+
+    EXPECT_THROW(--it, std::out_of_range);
 }
 
-TEST_F(SkipSetTest, ClearResets) {
-    ss.insert(10);
-    ss.insert(20);
-    ss.clear();
+TEST(SkipListTest, CopyConstructor) {
+    SkipList<int> list1;
+    list1.insert(10);
+    list1.insert(20);
+    list1.insert(30);
 
-    EXPECT_TRUE(ss.empty());
-    EXPECT_EQ(ss.size(), 0);
-    EXPECT_EQ(ss.begin(), ss.end());
+    SkipList<int> list2(list1);
+    EXPECT_EQ(list1.size(), list2.size());
+    EXPECT_TRUE(std::equal(list1.begin(), list1.end(), list2.begin()));
+
+    list2.insert(40);
+    EXPECT_NE(list1.size(), list2.size());
 }
 
-TEST_F(SkipSetTest, InsertAscendingOrder) {
-    for (int i = 0; i < 100; ++i) ss.insert(i);
+TEST(SkipListTest, MoveOperations) {
+    SkipList<int> list1;
+    list1.insert(100);
+    list1.insert(200);
 
-    int count = 0;
-    int last = -1;
-    for (int v : ss) {
-        EXPECT_GT(v, last);
-        last = v;
-        count++;
+    SkipList<int> list2(std::move(list1));
+    EXPECT_TRUE(list1.empty());
+    EXPECT_EQ(list2.size(), 2);
+    EXPECT_TRUE(list2.contains(100));
+    EXPECT_TRUE(list2.contains(200));
+
+    SkipList<int> list3;
+    list3 = std::move(list2);
+    EXPECT_TRUE(list2.empty());
+    EXPECT_EQ(list3.size(), 2);
+}
+
+TEST(SkipListTest, Clear) {
+    SkipList<int> list;
+    for (int i = 0; i < 100; ++i) {
+        list.insert(i);
     }
-    EXPECT_EQ(count, 100);
+    EXPECT_EQ(list.size(), 100);
+
+    list.clear();
+    EXPECT_TRUE(list.empty());
+    EXPECT_EQ(list.begin(), list.end());
 }
 
-TEST_F(SkipSetTest, EraseMaintainsOrder) {
-    std::set<int> ref = {1, 2, 3, 4, 5};
-    for (int v : ref) ss.insert(v);
+TEST(SkipListTest, ComparisonOperators) {
+    SkipList<int> list1;
+    list1.insert(1);
+    list1.insert(2);
+    list1.insert(3);
 
-    ss.erase(3);
-    ref.erase(3);
+    SkipList<int> list2;
+    list2.insert(1);
+    list2.insert(2);
+    list2.insert(3);
 
-    std::vector<int> svec(ss.begin(), ss.end());
-    std::vector<int> rvec(ref.begin(), ref.end());
-    EXPECT_EQ(svec, rvec);
+    EXPECT_TRUE(list1 == list2);
+
+    list2.insert(4);
+    EXPECT_TRUE(list1 != list2);
+
+    SkipList<int> list3;
+    EXPECT_FALSE(list1 == list3);
 }
 
-TEST_F(SkipSetTest, EndIteratorDereferenceThrows) {
-    auto it = ss.end();
+TEST(SkipListTest, CustomComparator) {
+    struct CaseInsensitiveCompare {
+        bool operator()(const std::string& a, const std::string& b) const {
+            return std::lexicographical_compare(
+                a.begin(), a.end(), b.begin(), b.end(),
+                [](char c1, char c2) {
+                    return std::tolower(c1) < std::tolower(c2);
+                });
+        }
+    };
+
+    SkipList<std::string, CaseInsensitiveCompare> list;
+    list.insert("Apple");
+    list.insert("banana");
+    list.insert("cherry");
+
+    EXPECT_TRUE(list.contains("APPLE"));
+    EXPECT_TRUE(list.contains("BANANA"));
+    EXPECT_TRUE(list.find("CHERRY") != list.end());
+
+    auto it = list.find("apple");
+    EXPECT_EQ(*it, "Apple");
+}
+
+TEST(SkipListTest, ErrorHandling) {
+    SkipList<int> list;
+    list.insert(10);
+
+    auto it = list.end();
     EXPECT_THROW(*it, std::out_of_range);
     EXPECT_THROW(it.operator->(), std::out_of_range);
+
+    EXPECT_THROW(++it, std::out_of_range);
+
+    auto begin_it = list.begin();
+    EXPECT_THROW(--begin_it, std::out_of_range);
+}
+TEST(SkipListStressTest, LargeDataset) {
+    SkipList<int> list;
+    std::set<int> reference;
+    const int N = 10000;
+
+    for (int i = 0; i < N; ++i) {
+        int value = rand() % (N * 10);
+        auto list_result = list.insert(value);
+        auto ref_result = reference.insert(value);
+        EXPECT_EQ(list_result.second, ref_result.second);
+    }
+    EXPECT_EQ(list.size(), reference.size());
+
+    EXPECT_TRUE(std::equal(list.begin(), list.end(), reference.begin()));
+
+    for (int i = 0; i < N/2; ++i) {
+        int value = rand() % (N * 10);
+        size_t list_erased = list.erase(value);
+        size_t ref_erased = reference.erase(value);
+        EXPECT_EQ(list_erased, ref_erased);
+    }
+    EXPECT_EQ(list.size(), reference.size());
+
+    for (int value : reference) {
+        EXPECT_TRUE(list.contains(value));
+    }
+
+    list.clear();
+    reference.clear();
+    EXPECT_TRUE(list.empty());
+    EXPECT_TRUE(reference.empty());
+}
+
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
