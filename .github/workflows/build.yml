@@ -1,0 +1,50 @@
+name: SkipList CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgtest-dev cmake
+          
+          # Build and install GoogleTest
+          cd /usr/src/gtest
+          sudo cmake CMakeLists.txt
+          sudo make
+          sudo cp lib/*.a /usr/lib
+
+      - name: Build project
+        run: |
+          make
+
+      - name: Run tests
+        run: |
+          make test
+
+      - name: Clean build artifacts
+        run: |
+          make clean
+          # Verify clean state
+          if [ -f skip_list_test ] || [ -d build ]; then
+            echo "Clean failed! Artifacts still present"
+            exit 1
+          fi
+
+      - name: Verify header-only implementation
+        run: |
+          # Check that no object files were committed
+          if find . -name '*.o' | grep -q '.'; then
+            echo "Object files found in repository!"
+            exit 1
+          fi
