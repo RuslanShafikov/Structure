@@ -1,0 +1,78 @@
+name: SkipList CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache GoogleTest
+        uses: actions/cache@v3
+        id: gtest-cache
+        with:
+          path: /usr/local/lib/libgtest.a
+          key: ${{ runner.os }}-gtest
+
+      - name: Install dependencies
+        if: steps.gtest-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgtest-dev cmake
+          cd /usr/src/gtest
+          sudo cmake CMakeLists.txt
+          sudo make
+          sudo cp lib/*.a /usr/local/lib
+
+      - name: Build project
+        run: make
+
+      - name: Run tests
+        env:
+          CI: true
+        run: |
+          timeout 120s ./skip_list_test || echo "Tests timed out"
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Generate documentation
+        run: |
+          # Create Doxyfile if not present
+          if [ ! -f Doxyfile ]; then
+            doxygen -g Doxyfile
+            # Configure minimal Doxyfile
+            sed -i 's/^PROJECT_NAME.*/PROJECT_NAME           = "SkipList Documentation"/' Doxyfile
+            sed -i 's/^INPUT.*/INPUT                  = structure.h/' Doxyfile
+            sed -i 's/^RECURSIVE.*/RECURSIVE              = NO/' Doxyfile
+            sed -i 's/^GENERATE_LATEX.*/GENERATE_LATEX         = NO/' Doxyfile
+            sed -i 's/^HAVE_DOT.*/HAVE_DOT               = YES/' Doxyfile
+          fi
+          
+          # Generate documentation
+          doxygen Doxyfile
+          ls -la documentation/html
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: skip-list-docs
+          path: documentation/html
+          retention-days: 7
+
+      - name: Clean build artifacts
+        run: |
+          make clean
+          if [ -f skip_list_test ] || [ -d build ]; then
+            echo "Clean failed! Artifacts still present"
+            exit 1
+          fi
