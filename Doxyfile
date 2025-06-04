@@ -1,0 +1,92 @@
+# Doxyfile 1.9.6
+
+#---------------------------------------------------------------------------
+# Project related configuration options
+#---------------------------------------------------------------------------
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Structure Documentation"
+PROJECT_NUMBER         = 1.0
+OUTPUT_DIRECTORY       = documentation
+CREATE_SUBDIRS         = NO
+OUTPUT_LANGUAGE        = English
+BRIEF_MEMBER_DESC      = YES
+
+#---------------------------------------------------------------------------
+# Build configuration
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = YES
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+
+#---------------------------------------------------------------------------
+# Input configuration - SPECIFIC FILES ONLY
+#---------------------------------------------------------------------------
+INPUT                  = structure.h \
+                         maintest.cpp \
+                         header/utility.h  # Add your 3rd file if needed
+FILE_PATTERNS          = *.h \
+                         *.cpp
+RECURSIVE              = NO
+EXCLUDE                = src/ \
+                         build/ \
+                         github/ \
+                         .gitignore
+EXCLUDE_SYMLINKS       = YES
+EXCLUDE_PATTERNS       = */tests/* \
+                         */examples/*
+EXCLUDE_SYMBOLS        =
+
+#---------------------------------------------------------------------------
+# Source browsing
+#---------------------------------------------------------------------------
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+#---------------------------------------------------------------------------
+# HTML output options
+#---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_COLORSTYLE_HUE    = 220
+HTML_TIMESTAMP         = YES
+GENERATE_TREEVIEW      = YES
+TREEVIEW_WIDTH         = 250
+
+#---------------------------------------------------------------------------
+# LaTeX output (disabled)
+#---------------------------------------------------------------------------
+GENERATE_LATEX         = NO
+
+#---------------------------------------------------------------------------
+# Dot graph generation
+#---------------------------------------------------------------------------
+HAVE_DOT               = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+
+#---------------------------------------------------------------------------
+# Search options
+#---------------------------------------------------------------------------
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+
+#---------------------------------------------------------------------------
+# Disable unused features
+#---------------------------------------------------------------------------
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
