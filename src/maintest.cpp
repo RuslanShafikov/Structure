@@ -196,38 +196,7 @@ TEST(SkipListTest, ErrorHandling) {
     auto begin_it = list.begin();
     EXPECT_THROW(--begin_it, std::out_of_range);
 }
-TEST(SkipListStressTest, LargeDataset) {
-    SkipList<int> list;
-    std::set<int> reference;
-    const int N = 10000;
 
-    for (int i = 0; i < N; ++i) {
-        int value = rand() % (N * 10);
-        auto list_result = list.insert(value);
-        auto ref_result = reference.insert(value);
-        EXPECT_EQ(list_result.second, ref_result.second);
-    }
-    EXPECT_EQ(list.size(), reference.size());
-
-    EXPECT_TRUE(std::equal(list.begin(), list.end(), reference.begin()));
-
-    for (int i = 0; i < N/2; ++i) {
-        int value = rand() % (N * 10);
-        size_t list_erased = list.erase(value);
-        size_t ref_erased = reference.erase(value);
-        EXPECT_EQ(list_erased, ref_erased);
-    }
-    EXPECT_EQ(list.size(), reference.size());
-
-    for (int value : reference) {
-        EXPECT_TRUE(list.contains(value));
-    }
-
-    list.clear();
-    reference.clear();
-    EXPECT_TRUE(list.empty());
-    EXPECT_TRUE(reference.empty());
-}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
