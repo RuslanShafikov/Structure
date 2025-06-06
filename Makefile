@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic -Iheader
+CXXFLAGS := -std=c++20 -Wall -Wextra -pedantic -Iheader
 LDFLAGS := -lgtest -lpthread
 
 TARGET := skip_list_test

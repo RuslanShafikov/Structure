@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <memory>
 #include <algorithm>
+#include <concepts>
+#include <cassert>
 
 template <typename T, typename Compare = std::less<T>>
 class SkipList {
@@ -27,7 +29,6 @@ public:
     class Iterator;
     class ConstIterator;
 
-    // Конструкторы
     explicit SkipList(double probability = 0.5, int max_level = 32);
     SkipList(const SkipList& other);
     SkipList(SkipList&& other) noexcept;
@@ -51,6 +52,10 @@ public:
     size_type erase(const T& value);
     void clear();
 
+    reference at(size_type index);
+    const_reference at(size_type index) const;
+    reference operator[](size_type index);
+    const_reference operator[](size_type index) const;
 
     Iterator find(const T& value);
     ConstIterator find(const T& value) const;
@@ -429,7 +434,6 @@ bool SkipList<T, Compare>::operator!=(const SkipList& other) const {
     return !(*this == other);
 }
 
-// Iterator implementation
 template <typename T, typename Compare>
 typename SkipList<T, Compare>::Iterator::reference SkipList<T, Compare>::Iterator::operator*() const {
     if (node_ == nullptr) {
@@ -491,7 +495,6 @@ bool SkipList<T, Compare>::Iterator::operator!=(const Iterator& other) const noe
     return node_ != other.node_;
 }
 
-// ConstIterator implementation
 template <typename T, typename Compare>
 typename SkipList<T, Compare>::ConstIterator::reference SkipList<T, Compare>::ConstIterator::operator*() const {
     if (node_ == nullptr) {
@@ -553,7 +556,6 @@ bool SkipList<T, Compare>::ConstIterator::operator!=(const ConstIterator& other)
     return node_ != other.node_;
 }
 
-// Итераторы контейнера
 template <typename T, typename Compare>
 typename SkipList<T, Compare>::Iterator SkipList<T, Compare>::begin() noexcept {
     return Iterator(head_->forward[0]);
@@ -583,5 +585,50 @@ template <typename T, typename Compare>
 typename SkipList<T, Compare>::ConstIterator SkipList<T, Compare>::cend() const noexcept {
     return end();
 }
+
+template <typename T, typename Compare>
+typename SkipList<T, Compare>::reference SkipList<T, Compare>::at(size_type index) {
+    if (index >= size_) {
+        throw std::out_of_range("SkipList::at: index out of range");
+    }
+    NodePtr current = head_->forward[0];
+    for (size_type i = 0; i < index; ++i) {
+        current = current->forward[0];
+    }
+    return current->value;
+}
+
+template <typename T, typename Compare>
+typename SkipList<T, Compare>::const_reference SkipList<T, Compare>::at(size_type index) const {
+    if (index >= size_) {
+        throw std::out_of_range("SkipList::at: index out of range");
+    }
+    NodePtr current = head_->forward[0];
+    for (size_type i = 0; i < index; ++i) {
+        current = current->forward[0];
+    }
+    return current->value;
+}
+
+template <typename T, typename Compare>
+typename SkipList<T, Compare>::reference SkipList<T, Compare>::operator[](size_type index) {
+    assert(index < size_ && "SkipList::operator[]: index out of range");
+    NodePtr current = head_->forward[0];
+    for (size_type i = 0; i < index; ++i) {
+        current = current->forward[0];
+    }
+    return current->value;
+}
+
+template <typename T, typename Compare>
+typename SkipList<T, Compare>::const_reference SkipList<T, Compare>::operator[](size_type index) const {
+    assert(index < size_ && "SkipList::operator[]: index out of range");
+    NodePtr current = head_->forward[0];
+    for (size_type i = 0; i < index; ++i) {
+        current = current->forward[0];
+    }
+    return current->value;
+}
+
 
 #endif //STRUCTURE_H

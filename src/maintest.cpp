@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <concepts>
 
 TEST(SkipListTest, DefaultConstructor) {
     SkipList<int> list;
@@ -197,6 +198,156 @@ TEST(SkipListTest, ErrorHandling) {
     EXPECT_THROW(--begin_it, std::out_of_range);
 }
 
+TEST(SkipListTest, SubscriptOperatorAccess) {
+    SkipList<int> list;
+    list.insert(10);
+    list.insert(20);
+    list.insert(30);
+
+    EXPECT_EQ(list[0], 10);
+    EXPECT_EQ(list[1], 20);
+    EXPECT_EQ(list[2], 30);
+
+    list[1] = 25;
+    EXPECT_EQ(list[1], 25);
+}
+
+TEST(SkipListTest, ConstSubscriptOperator) {
+    SkipList<int> mutableList;
+    mutableList.insert(10);
+    mutableList.insert(20);
+    mutableList.insert(30);
+
+    const auto& list = mutableList;
+
+    EXPECT_EQ(list[0], 10);
+    EXPECT_EQ(list[1], 20);
+    EXPECT_EQ(list[2], 30);
+}
+
+TEST(SkipListTest, AtMethodAccess) {
+    SkipList<int> list;
+    list.insert(10);
+    list.insert(20);
+    list.insert(30);
+
+    // Проверка доступа к элементам
+    EXPECT_EQ(list.at(0), 10);
+    EXPECT_EQ(list.at(1), 20);
+    EXPECT_EQ(list.at(2), 30);
+
+    // Проверка модификации элементов
+    list.at(1) = 25;
+    EXPECT_EQ(list.at(1), 25);
+}
+
+TEST(SkipListTest, ConstAtMethod) {
+    SkipList<int> mutableList;
+    mutableList.insert(10);
+    mutableList.insert(20);
+    mutableList.insert(30);
+
+    const auto& list = mutableList;
+
+    EXPECT_EQ(list.at(0), 10);
+    EXPECT_EQ(list.at(1), 20);
+    EXPECT_EQ(list.at(2), 30);
+}
+
+TEST(SkipListTest, OutOfRangeAccess) {
+    SkipList<int> list;
+    list.insert(10);
+    list.insert(20);
+
+    EXPECT_THROW(list.at(2), std::out_of_range);
+    EXPECT_THROW(list.at(-1), std::out_of_range);
+    EXPECT_THROW(list.at(100), std::out_of_range);
+}
+
+TEST(SkipListTest, EmptyListAccess) {
+    SkipList<int> list;
+
+    EXPECT_THROW(list.at(0), std::out_of_range);
+    EXPECT_THROW(list.at(1), std::out_of_range);
+}
+
+TEST(SkipListTest, SequentialAccessConsistency) {
+    SkipList<int> list;
+    const int N = 100;
+
+    for (int i = 0; i < N; i++) {
+        list.insert(i);
+    }
+
+    for (int i = 0; i < N; i++) {
+        EXPECT_EQ(list[i], i);
+        EXPECT_EQ(list.at(i), i);
+    }
+}
+
+TEST(SkipListTest, ReverseOrderInsertion) {
+    SkipList<int> list;
+    const int N = 100;
+
+    for (int i = N-1; i >= 0; i--) {
+        list.insert(i);
+    }
+
+    for (int i = 0; i < N; i++) {
+        EXPECT_EQ(list[i], i);
+    }
+}
+
+TEST(SkipListTest, AccessAfterModification) {
+    SkipList<int> list;
+    list.insert(1);
+    list.insert(2);
+    list.insert(3);
+
+    list[0] = 10;
+    list[1] = 20;
+    list[2] = 30;
+
+    EXPECT_EQ(list[0], 10);
+    EXPECT_EQ(list[1], 20);
+    EXPECT_EQ(list[2], 30);
+
+    list.at(0) = 100;
+    list.at(1) = 200;
+    list.at(2) = 300;
+
+    EXPECT_EQ(list.at(0), 100);
+    EXPECT_EQ(list.at(1), 200);
+    EXPECT_EQ(list.at(2), 300);
+}
+
+TEST(SkipListTest, StringTypeAccess) {
+    SkipList<std::string> list;
+    list.insert("apple");
+    list.insert("banana");
+    list.insert("cherry");
+
+    EXPECT_EQ(list[0], "apple");
+    EXPECT_EQ(list[1], "banana");
+    EXPECT_EQ(list[2], "cherry");
+
+    list[1] = "orange";
+    EXPECT_EQ(list.at(1), "orange");
+}
+
+TEST(SkipListTest, LargeDatasetAccess) {
+    SkipList<int> list;
+    const int N = 10000;
+
+    for (int i = 0; i < N; i++) {
+        list.insert(i * 2);
+    }
+
+    for (int i = 0; i < 100; i++) {
+        int index = rand() % N;
+        EXPECT_EQ(list[index], index * 2);
+    }
+}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
